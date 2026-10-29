@@ -1,0 +1,71 @@
+services:
+  syncora.db:
+    container_name: syncora-db
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./.containers/database:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - syncora-network
+
+  syncora.cache:
+    container_name: syncora-cache
+    image: redis:8-alpine
+    restart: always
+    command: redis-server --requirepass ${CACHE_PASSWORD}
+    volumes:
+      - ./.containers/cache:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"${CACHE_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - syncora-network
+
+  syncora.api:
+    container_name: syncora-api
+    image: syncora-api
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    depends_on:
+      syncora.db:
+        condition: service_healthy
+      syncora.cache:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__Database=Host=syncora.db;Port=5432;Database=${DB_DATABASE};Username=${DB_USER};Password=${DB_PASSWORD};Include Error Detail=true
+      - ConnectionStrings__Cache=syncora.cache:6379,password=${CACHE_PASSWORD}
+      - JWTConfig__SecretKey=${SECRET_KEY}
+    networks:
+      - syncora-network
+
+  syncora.web:
+    container_name: syncora-web
+    image: syncora-web
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - syncora.api
+    environment:
+      - INTERNAL_API_URL=http://syncora.api:8080
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+    networks:
+      - syncora-network
+
+networks:
+  syncora-network:
+    driver: bridge

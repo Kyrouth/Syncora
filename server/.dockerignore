@@ -1,0 +1,64 @@
+# ==========================================
+# 1. Build Outputs & Artifacts
+# ==========================================
+**/bin/
+**/obj/
+**/build/
+**/publish/
+**/artifacts/
+
+# ==========================================
+# 2. Version Control (No Git in Docker)
+# ==========================================
+.git/
+.gitignore
+.gitattributes
+
+# ==========================================
+# 3. Environment & Secrets
+# ==========================================
+.env
+.env.*
+*.env
+**/appsettings.Development.json
+**/secrets.dev.yaml
+
+# ==========================================
+# 4. IDEs, Editors & Tools
+# ==========================================
+.vs/
+.vscode/
+.idea/
+**/*.*proj.user
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# ==========================================
+# 5. Logs & Diagnostic Files
+# ==========================================
+*.log
+**/*.log
+[Ll]og/
+[Ll]ogs/
+*.binlog
+[Bb]uild[Ll]og.*
+
+# ==========================================
+# 6. Docker & Infrastructure Artifacts
+# ==========================================
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# ==========================================
+# 7. Tests & Temporary Files
+# ==========================================
+**/TestResults/
+coverage/
+CodeCoverage/
+~$*
+*~
+.DS_Store
+Thumbs.db
